@@ -4,16 +4,24 @@
 \alias{read_x3p}
 \title{Read an x3p file into an x3p object}
 \usage{
-read_x3p(file)
+read_x3p(file, size = NA, quiet = T)
 }
 \arguments{
-\item{file}{The file path to the x3p file}
+\item{file}{The file path to the x3p file, or an url to an x3p file}
+
+\item{size}{size in bytes to use for reading the binary file. If not specified, default is used. Will be overwritten if specified in the xml meta file.}
+
+\item{quiet}{for url downloads, show download progress?}
 }
 \value{
 x3p object consisting of a list of the surface matrix and the four records as specified in the ISO standard
 }
 \description{
-Read an x3p file into an x3p object
+Read file in x3p format. x3p formats describe 3d topological surface according to
+ISO standard ISO5436 – 2000.
+x3p files are a container format implemented as a zip archive of a folder
+consisting of an xml file of meta
+information and a binary matrix of numeric surface measurements.
 }
 \examples{
 logo <- read_x3p(system.file("csafe-logo.x3p", package="x3ptools"))

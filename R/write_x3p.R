@@ -2,19 +2,26 @@
 #' 
 #' @param x3p x3p object
 #' @param file path to where the file should be written
+#' @param size integer. The number of bytes per element in the  surface matrix used for creating the binary file. Use size = 4 for 32 bit IEEE 754 floating point numbers and size = 8 for 64 bit IEEE 754 floating point number (default).
+#' @param quiet suppress messages
 #' @importFrom digest digest
 #' @importFrom xml2 read_xml
 #' @importFrom utils as.relistable relist zip
+#' @importFrom graphics par plot
+#' @importFrom grDevices dev.off 
 #' @export
 #' @examples
 #' logo <- read_x3p(system.file("csafe-logo.x3p", package="x3ptools"))
 #' # write a copy of the file into a temporary file
 #' write_x3p(logo, file = tempfile(fileext="x3p")) 
-write_x3p <- function(x3p, file)
+write_x3p <- function(x3p, file, size = 8, quiet = F)
 {
   a1 <- read_xml(system.file("templateXML.xml", package="x3ptools"))
   a1list<- as_list(a1, ns = xml_ns(a1))
   tmp<- as.relistable(a1list) # structure needed for compiling xml_document
+  
+  # check that size is 4 or 8
+  stopifnot(size %in% c(4,8))
   
   feature.info <- x3p$feature.info
   general.info <- x3p$general.info
@@ -22,16 +29,16 @@ write_x3p <- function(x3p, file)
   matrix.info <- x3p$matrix.info
   
   if (is.null(general.info)) {
-    cat("general info not specified, using template\n")
+    if (!quiet) message("general info not specified, using template")
     general.info = as_list(xml_child(a1, search = "Record2"))
   }
   if (is.null(feature.info)) {
-    cat("feature info not specified, using template\n")
+    if (!quiet) message("feature info not specified, using template")
     feature.info = as_list(xml_child(a1, search = "Record1"))
     
   }
   if (is.null(matrix.info)) {
-    cat("matrix info not specified, using template\n")
+    if (!quiet) message("matrix info not specified, using template")
     matrix.info = as_list(xml_child(a1, search = "Record3"))
     
   }
@@ -74,12 +81,22 @@ write_x3p <- function(x3p, file)
   a1list[[1]]$Record1 <- feature.info
   
   # Writing the Surface Matrix as a Binary file
-  writeBin(as.vector((x3p$surface.matrix)), con = binPath)
-  
+  writeBin(as.vector((x3p$surface.matrix)), con = binPath, size = size)
   # Generating the MD% check sum
   chksum<- digest("bindata/data.bin", algo= "md5", serialize=FALSE, file=TRUE)
   a1list[[1]]$Record3$DataLink$MD5ChecksumPointData <- list(chksum)
   
+  # if the mask exists, write it as a png file
+  if (exists("mask", x3p)) {
+    grDevices::png(file = "bindata/mask.png", width = x3p$header.info$sizeX,
+                   height = x3p$header.info$sizeY, units = "px", bg="transparent")
+    graphics::par(mar = c(0,0,0,0))
+    plot(x3p$mask)
+    dev.off()
+  }
+    
+  if (size == 4) a1list[[1]]$Record1$Axes$CZ$DataType[[1]] <- "F"
+  if (size == 8) a1list[[1]]$Record1$Axes$CZ$DataType[[1]] <- "D"
   
   # Assigning values to Record 4 in main.xml
   a1list[[1]]$Record4$ChecksumFile <- list("md5checksum.hex")
@@ -108,7 +125,9 @@ write_x3p <- function(x3p, file)
   # Write the x3p file and reset path
   # create zipped file in the specified location 
   
-  zip(zipfile = file.path(fileDir, fileName), files = dir())
+#  zip(zipfile = file.path(fileDir, fileName), files = dir())
+  zip(zipfile = file.path(fileDir, fileName), files = dir(), 
+      flags = ifelse(quiet, "-r9Xq", "-r9X"))
   # not necessary to delete the temporary folder 
  # setwd("..")
 #  unlink(tmpx3pfolder,recursive = TRUE)

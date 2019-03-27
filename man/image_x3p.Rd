@@ -4,16 +4,21 @@
 \alias{image_x3p}
 \title{Plot x3p object as an image}
 \usage{
-image_x3p(x3p, file = NULL, col = "#cd7f32", size = c(750, 250),
+image_x3p(x3p, file = NULL, col = "#cd7f32", crosscut = NA,
+  ccParam = list(color = "#e6bf98", radius = 5), size = c(750, 250),
   zoom = 0.35, multiply = 5, ...)
 }
 \arguments{
 \item{x3p}{x3p object}
 
 \item{file}{file name for saving, if file is NULL the opengl device stays open.
-The file extension determines the type of output. Possible extensions are png, stl (suitable for 3d printing).}
+The file extension determines the type of output. Possible extensions are png, stl (suitable for 3d printing), or svg.}
 
 \item{col}{color specification}
+
+\item{crosscut}{crosscut index}
+
+\item{ccParam}{list with named components, consisting of parameters for showing crosscuts:  color and radius for crosscut region}
 
 \item{size}{vector of width and height}
 
@@ -29,6 +34,9 @@ Plot x3p object as an image
 \examples{
 \dontrun{
 logo <- read_x3p(system.file("csafe-logo.x3p", package="x3ptools"))
-image_x3p(logo, file = "logo.png")
+image_x3p(logo, file = "logo.png", crosscut = 50*.645e-6)
+# alternative to crosscut
+logoplus <- x3p_add_hline(logo, yintercept = 50*.645e-6, color = "#e6bf98", size = 5)
+image_x3p(logoplus, size = c(741, 419), zoom=0.5)
 }
 }

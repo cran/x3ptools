@@ -11,7 +11,39 @@
 #' head(logo_df)
 x3p_to_df <- function(x3p) {
   info <- x3p$header.info
-
+  if (is.null(info$sizeX)) {
+    if (!is.null(info$num_obs_per_profile)) {
+      info$sizeX <- info$num_obs_per_profile 
+    } else {
+      warning("Assuming X is represented by rows of the surface matrix because it is not specified in header information")
+      info$sizeX <- nrow(x3p$surface.matrix)
+    }
+  }
+  if (is.null(info$sizeY)) {
+    if (!is.null(info$num_profiles)) {
+      info$sizeY <- info$num_profiles
+    } else {
+      warning("Assuming Y is represented by columns of the surface matrix because it is not specified in header information")
+      info$sizeY <- ncol(x3p$surface.matrix)
+    }
+  } 
+  if (is.null(info$incrementY)) {
+    if (!is.null(info$profile_inc)) {
+      info$incrementY <- info$profile_inc
+    } else {
+      warning("Assuming Y increment is 1 - not specified")
+      info$incrementY <- 1
+    }
+  } 
+  if (is.null(info$incrementX)) {
+    if (!is.null(info$obs_inc)) {
+      info$incrementX <- info$obs_inc
+    } else {
+      warning("Assuming X increment is 1 - not specified")
+      info$incrementX <- 1
+    }
+  }  
+  
   # expand.grid creates grid with first variable the fastest
   df <- data.frame(expand.grid(
     x=1:info$sizeX,
@@ -44,10 +76,9 @@ df_to_x3p <- function(dframe) {
   ny <- length(unique(dframe$y))
   nx <- length(unique(dframe$x))
   if (nrow(dframe) != nx*ny) {
-    cat("dframe has missing values ...")
+    message("dframe has missing values ... they will be expanded")
     df2 <- expand.grid(x = unique(dframe$x), y = unique(dframe$y))
-    cat(" expand ... \n")
-    df2 <- merge(df2, dframe, by=c("x", "y"), all.x=TRUE)
+    df2 <- merge(df2, dframe, by = c("x", "y"), all.x = TRUE)
     dframe <- df2
   }
   dframe$y <- (-1)*dframe$y
@@ -56,13 +87,17 @@ df_to_x3p <- function(dframe) {
 
   x3p[["surface.matrix"]] <- matrix(dframe$value, 
                                     #  nrow = ny,  ncol = nx, byrow = TRUE)
-                                    nrow = nx, ncol = ny, byrow=TRUE)
+                                    nrow = nx, ncol = ny, byrow = TRUE)
   
   if (is.null(x3p$header.info)) {
     x3p$header.info <- list(sizeX = nx,
                             sizeY = ny,
                             incrementX = median(diff(unique(dframe$x))),
                             incrementY = median(diff(unique(dframe$y))))
+  }
+  
+  if (is.null(x3p$matrix.info)) {
+    x3p$matrix.info <- list(MatrixDimension = list(SizeX = nx, SizeY = ny, SizeZ = 1))
   }
   class(x3p) <- "x3p"
 
