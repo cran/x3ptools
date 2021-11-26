@@ -5,27 +5,39 @@
 #   okfiles <- list.files(here::here("tests/"), ".Rdata", full.names = T)
 # }
 
-`%>%` <- dplyr::`%>%`
+#`%>%` <- dplyr::`%>%`
 
 url_unreachable <- function(url) {
   ("try-error" %in% class(try(xml2::read_html(url), silent = T)))
 }
 
+
 set.seed(323523)
 dftest <- expand.grid(x = 1:6, y = 1:7) %>%
   as.data.frame() %>%
-  dplyr::mutate(z = rnorm(42, 0, .1) + sqrt((x - 3.5)^2 + (y - 3.5)^2),
-                value = z)
+  dplyr::mutate(
+    z = rnorm(42, 0, .1) + sqrt((x - 3.5)^2 + (y - 3.5)^2),
+    value = z,
+    mask = sample(c("#FFFF00", "#0000FF", "#00FF00"), size = 42, replace=TRUE)
+  )
 
-x3ptest <- df_to_x3p(dftest[,c(1, 2, 4)])
+x3ptest <- df_to_x3p(dftest[, c(1, 2, 4)])
 
 
+x3ptest_mask <- df_to_x3p(dftest[, c(1, 2, 4, 5)])
+x3ptest_mask <- x3ptest_mask %>% 
+  x3p_add_annotation("#FFFF00", "yellow")  %>%
+  x3p_add_annotation("#00FF00", "green")  %>%
+  x3p_add_annotation("#0000FF", "blue")  
+  
 bigdf <- expand.grid(x = 0:50, y = 0:100) %>%
   as.data.frame() %>%
-  dplyr::mutate(z = sqrt((x - 25.5)^2 + (y - 50.5)^2),
-                value = z)
+  dplyr::mutate(
+    z = sqrt((x - 25.5)^2 + (y - 50.5)^2),
+    value = z
+  )
 
-x3pbig <- df_to_x3p(bigdf[,c(1, 2, 4)]) %>%
+x3pbig <- df_to_x3p(bigdf[, c(1, 2, 4)]) %>%
   x3p_add_mask()
 
 # Setup for F/D issue
@@ -46,4 +58,4 @@ x3pbig2$matrix.info$Mask$Annotations <- list(
   Annotation = structure(list("testing"), color = "black")
 )
 
-logo <- read_x3p(system.file("csafe-logo.x3p", package = "x3ptools"))
+logo <- x3p_read(system.file("csafe-logo.x3p", package = "x3ptools"))

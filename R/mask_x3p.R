@@ -8,22 +8,37 @@
 #' @export
 #' @importFrom grDevices as.raster
 #' @examples
-#' x3p <- read_x3p(system.file("sample-land.x3p", package="x3ptools"))
+#' x3p <- x3p_read(system.file("sample-land.x3p", package="x3ptools"))
 #' # x3p file has mask consisting color raster image:
 #' x3p$mask[1:5,1:5]
 #' \dontrun{
-#' logo <- read_x3p(system.file("csafe-logo.x3p", package="x3ptools"))
+#' logo <- x3p_read(system.file("csafe-logo.x3p", package="x3ptools"))
 #' color_logo <- png::readPNG(system.file("csafe-color.png", package="x3ptools"))
 #' logoplus <- x3p_add_mask(logo, as.raster(color_logo))
-#' image_x3p(logoplus, multiply=50, size = c(741, 419),zoom = 0.5)
+#' x3p_image(logoplus, multiply=50, size = c(741, 419),zoom = 0.5)
 #' }
 x3p_add_mask <- function(x3p, mask = NULL) {
   stopifnot("x3p" %in% class(x3p))
+  
+  # This is necessary so that mask information can be added
+  # HH: I'm not sure how this could happen. Both df_to_x3p and x3p_read create the matrix
+  if (!"matrix.info" %in% names(x3p)) {
+    x3p$matrix.info <- list(MatrixDimension = list(
+      SizeX = dim(x3p$surface.matrix)[1],
+      SizeY = dim(x3p$surface.matrix)[2],
+      SizeZ = 1
+    ))
+  }
+  
   dims <- rev(dim(x3p$surface.matrix))
-  if (is.null(mask)) {  
+  if (is.null(mask)) {
     if (!"Mask" %in% names(x3p$matrix.info)) {
       x3p$matrix.info$Mask <- list(
-        Background = if (length(unique(mask)) == 1) {list(unique(mask))} else {list("")},
+        Background = if (length(unique(mask)) == 1) {
+          list(unique(mask))
+        } else {
+          list("#cd7f32")
+        },
         Annotations = list()
       )
     }
@@ -38,19 +53,13 @@ x3p_add_mask <- function(x3p, mask = NULL) {
     }
   }
   x3p$mask <- mask
-  
-  # This is necessary so that mask information can be added
-  if (!"matrix.info" %in% names(x3p)) {
-    x3p$matrix.info <- list(MatrixDimension = list(SizeX = dim(x3p$surface.matrix)[1],
-                                                   SizeY = dim(x3p$surface.matrix)[2],
-                                                   SizeZ = 1))
-  }
-  
+
+
   x3p
 }
 
 #' Delete mask from an x3p object
-#' 
+#'
 #' Deletes mask and its annotations from an x3p file.
 #' @param x3p x3p object
 #' @return x3p object without the mask
@@ -63,5 +72,39 @@ x3p_delete_mask <- function(x3p) {
     x3p$matrix.info$Mask <- NULL
   }
 
+  x3p
+}
+
+#' Add annotations to an x3p object
+#'
+#' Annotations in an x3p object are  legend entries for each color of a mask.
+#' @param x3p x3p object
+#' @param color name or hex value of color
+#' @param annotation character value describing the region
+#' @return x3p object with the added annotations
+#' @export
+#' @examples 
+#' \dontrun{
+#' logo <- x3p_read(system.file("csafe-logo.x3p", package="x3ptools"))
+#' color_logo <- png::readPNG(system.file("csafe-color.png", package="x3ptools"))
+#' logoplus <- x3p_add_mask(logo, as.raster(color_logo))
+#' x3p_image(logoplus, multiply=50, size = c(741, 419),zoom = 0.5)
+#' logoplus <- x3p_add_annotation(logoplus, "#FFFFFFFF", "background")
+#' logoplus <- x3p_add_annotation(logoplus, "#818285FF", "text")
+#' logoplus <- x3p_add_annotation(logoplus, "#F6BD47FF", "fingerprint")
+#' logoplus <- x3p_add_annotation(logoplus, "#D2202FFF", "fingerprint")
+#' logoplus <- x3p_add_annotation(logoplus, "#92278FFF", "fingerprint")
+#' 
+#' x3p_add_legend(logoplus)
+#' }
+x3p_add_annotation <- function(x3p, color, annotation) {
+  if (!("Mask" %in% names(x3p$matrix.info))) {
+    x3p$matrix.info$Mask <- list("Annotations")
+  }
+
+  len <- length(x3p$matrix.info$Mask$Annotations)
+  x3p$matrix.info$Mask$Annotations[[len + 1]] <- list()
+  x3p$matrix.info$Mask$Annotations[[len + 1]][[1]] <- annotation
+  attr(x3p$matrix.info$Mask$Annotations[[len + 1]], "color") <- color
   x3p
 }

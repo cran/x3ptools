@@ -4,8 +4,12 @@
 \alias{x3p_add_grid}
 \title{Add a grid of helper lines to the mask of an x3p object}
 \usage{
-x3p_add_grid(x3p, spaces, size = c(1, 3, 5), color = c("grey50",
-  "black", "darkred"))
+x3p_add_grid(
+  x3p,
+  spaces,
+  size = c(1, 3, 5),
+  color = c("grey50", "black", "darkred")
+)
 }
 \arguments{
 \item{x3p}{x3p object}
@@ -25,12 +29,12 @@ Lines are added to a mask. In case no mask exists, one is created.
 }
 \examples{
 \dontrun{
-logo <- read_x3p(system.file("csafe-logo.x3p", package = "x3ptools"))
+logo <- x3p_read(system.file("csafe-logo.x3p", package = "x3ptools"))
 # ten vertical lines across:
 logoplus <- x3p_add_grid(logo,
   spaces = 50e-6, size = c(1, 3, 5),
   color = c("grey50", "black", "darkred")
 )
-image_x3p(logoplus, size = c(741, 419), zoom = 0.5)
+x3p_image(logoplus, size = c(741, 419), zoom = 0.5)
 }
 }
