@@ -1,3 +1,33 @@
+# x3ptools (development version)
+
+# x3ptools 0.0.4.9000
+
+
+# x3ptools 0.0.4
+
+## major functionality 
+
+* `tmd_to_x3p` allows an import of a file in TMD format (natively supported by GelSight instruments) to x3p
+* `x3p_bin_stripes` color-shade the mask by row or column-based gradient
+* `x3p_shade_mask` color-shade the mask of an x3p by its surface profile
+* `x3p_circle_select` interactively select a circle on an x3p surface by selecting three points
+* update `x3p_read` and `x3p_write` to allow vendor specific information
+
+
+## minor functionality 
+
+* `x3p_extract_profile_segments` interactive function for drawing lines in segments
+* added convenience parameter `create_dir` in `x3p_write` to create necessary directory structure
+* `x3p_image` remove previously deprecated parameters crosscut and ccParam
+* `x3p_image` change functionality of parameter size for convenience working with cartridge case scans (make window size proportional to surface), default behavior for bullet scans is unchanged. 
+* updates to documentation
+
+
+## bug fixes
+
+* keep mask when averaging in `x3p_average`
+* preserve annotations when casting to a data frame
+
 # x3ptools 0.0.3
 
 ## features

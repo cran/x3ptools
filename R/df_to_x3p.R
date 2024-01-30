@@ -57,13 +57,19 @@ x3p_to_df <- function(x3p) {
 
   if (!is.null(x3p$mask)) {
     df$mask <- as.vector(x3p$mask)
-    # make sure the hex code is lower case and only 6 digits wide (7 including the hash)
-    df$maskmerge <- tolower(substr(df$mask, 1, 7))
     annotations <- x3p_mask_legend(x3p)
     if (!is.null(annotations)) {
-      legend <- data.frame(maskmerge = annotations, annotation = names(annotations))
-      legend$maskmerge <- tolower(legend$maskmerge)
-      df <- merge(df, legend, by = "maskmerge", all.x = TRUE)
+   #   browser()
+      annotations <- tolower(annotations)
+      rev_annotations <- tolower(names(annotations))
+      names(rev_annotations) <- annotations
+      # make sure the hex code is lower case and only 6 digits wide (7 including the hash)
+      df$maskmerge <- tolower(substr(df$mask, 1, 7))
+      df$annotation <- rev_annotations[df$maskmerge]
+
+      # preserve all annotations, not just the ones in use      
+      df$mask <- factor(df$maskmerge, levels=annotations)
+      df$annotation <- factor(df$annotation, levels=names(annotations))
       df <- select(df, -"maskmerge")
     }
   }
@@ -71,7 +77,6 @@ x3p_to_df <- function(x3p) {
   attr(df, "header.info") <- info
   attr(df, "feature.info") <- x3p$feature.info
   attr(df, "general.info") <- x3p$general.info
-
   df
 }
 
@@ -124,42 +129,25 @@ df_to_x3p <- function(dframe, var = "value") {
   
   if ("mask" %in% names(dframe)) {
     x3p <- x3p %>% x3p_add_mask(mask = matrix(dframe$mask, nrow = dim(x3p$surface.matrix)[2]))
+ #   browser()
+    if("annotation" %in% names(dframe)) {
+      if(is.factor(dframe$mask) & is.factor(dframe$annotation)) {
+        annotations <- data.frame(
+          mask = levels(dframe$mask),
+          annotation = levels(dframe$annotation)
+        )
+      } else
+        annotations <- unique(dframe[,c("mask", "annotation")])
+      for (i in 1:nrow(annotations)) {
+        x3p <- x3p %>% x3p_add_annotation(
+          color = annotations$mask[i], 
+          annotation=annotations$annotation[i])
+      }
+    }
+      
   }
 
   x3p
 }
 
 
-#' Convert an STL file to an x3p file
-#' 
-#' STL files describe 3d objects as mesh objects. Here, we assume that the 3d object consists of a 3d surface on the top of a rectangular, equi-spaced 2d grid.
-#' We further assume, that each node of the STL file describes the x-y location of an actual measurement. These measurements are then converted into the surface matrix of an x3p object.
-#' The resolution is derived from the distance between consecutive x and y nodes.
-#' @param stl STL file object or path to the file
-#' @return x3p object
-#' @importFrom rgl readSTL
-#' @export
-#' @examples 
-#' \dontrun{
-#' # the website https://touchterrain.geol.iastate.edu/ allows a download
-#' # of a 3d printable terrain model. For an example we suggest to download a file from there.
-#' gc <- rgl::readSTL("<PATH TO STL FILE>", plot=FALSE)
-#' x3p <- stl_to_x3p(gc)
-#' }
-stl_to_x3p <- function(stl) {
-  if (is.character(stl)) {
-    stl <- rgl::readSTL(stl, plot = FALSE)
-  }
-  stopifnot(is.matrix(stl), ncol(stl)==3)
-
-  x <- y <- value <- NULL
-  
-  stl_df <- data.frame(stl)
-  names(stl_df) <- c("x", "y", "value")
-  stl_df <- stl_df %>% group_by(x, y) %>% 
-    summarize(value = max(value))
-
-
-  x3p <- stl_df %>% df_to_x3p()
-  x3p
-}

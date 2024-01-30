@@ -9,9 +9,7 @@ x3p_image(
   x3p,
   file = NULL,
   col = "#cd7f32",
-  crosscut = NA,
-  ccParam = list(color = "#e6bf98", radius = 5),
-  size = c(750, 250),
+  size = 750,
   zoom = 0.35,
   multiply = 5,
   update = FALSE,
@@ -22,8 +20,6 @@ image_x3p(
   x3p,
   file = NULL,
   col = "#cd7f32",
-  crosscut = NA,
-  ccParam = list(color = "#e6bf98", radius = 5),
   size = c(750, 250),
   zoom = 0.35,
   multiply = 5,
@@ -38,11 +34,7 @@ The file extension determines the type of output. Possible extensions are png, s
 
 \item{col}{color specification}
 
-\item{crosscut}{crosscut index}
-
-\item{ccParam}{list with named components, consisting of parameters for showing crosscuts:  color and radius for crosscut region}
-
-\item{size}{vector of width and height}
+\item{size}{vector of width and height. If only one value is given, height or width will be adjusted proportionally to the dimensions of the surface matrix of the scan to reach an upper bound of size.}
 
 \item{zoom}{numeric value indicating the amount of zoom}
 
@@ -53,14 +45,22 @@ The file extension determines the type of output. Possible extensions are png, s
 \item{...}{not used}
 }
 \description{
-Plot x3p object as an image
+Plot an interactive surface plot of the x3p matrix. This implementation uses the \code{rgl} package.
+In case \code{rgl.useNULL} is set to TRUE (i.e. no separate window will be opened), an rgl widget
+can be used to show the surface in the viewer window (see the example).
 }
 \examples{
-\dontrun{
+save <- getOption("rgl.useNULL")
+options(rgl.useNULL=TRUE)
+
 logo <- x3p_read(system.file("csafe-logo.x3p", package="x3ptools"))
-x3p_image(logoplus, size = c(741, 419), zoom=0.5)
+x3p_image(logo, size = c(741, 419), zoom=0.5)
 # add crosscut:
 logoplus <- x3p_add_hline(logo, yintercept = 50*.645e-6, color = "#e6bf98", size = 5)
 x3p_image(logoplus, size = c(741, 419), zoom=0.5)
-}
+widget <- rgl::rglwidget()
+if (interactive())
+  widget
+
+options(rgl.useNULL=save)   
 }

@@ -23,13 +23,13 @@ teardown({
 
 test_that("image_x3p works as expected", {
   expect_error(image_x3p("hello world"), ".x3p. .in. class.*x3p.* is not TRUE")
-  image_x3p(x3ptest)
+  image_x3p(x3ptest, size=60)
   rglwindowopen <- rgl::.check3d()
   # Check that a window is open
   expect_gte(rglwindowopen, 1)
   # If open, close it
   if (rglwindowopen) {
-    rgl::rgl.close()
+    rgl::close3d()
   }
   x3ptest2 <- x3ptest %>% x3p_add_grid(spaces = 2, size = 1, color = "black")
   image_x3p(x3ptest2, file = "x3ptest.png")
@@ -39,13 +39,13 @@ test_that("image_x3p works as expected", {
   image_x3p(x3ptest, file = "x3ptest.stl")
   expect_true(file.exists("x3ptest.stl"))
 
-  expect_warning(image_x3p(x3ptest, crosscut = 1), "Use of crosscut is deprecated")
+#  expect_warning(image_x3p(x3ptest, crosscut = 1), "Use of crosscut is deprecated")
   rglwindowopen <- rgl::.check3d()
   # Check that a window is open
   expect_gte(rglwindowopen, 1)
   # If open, close it
   if (rglwindowopen) {
-    rgl::rgl.close()
+    rgl::close3d()
   }
 
   # With mask
@@ -57,18 +57,24 @@ test_that("image_x3p works as expected", {
   expect_gte(rglwindowopen, 1)
   # If open, close it
   if (rglwindowopen) {
-    rgl::rgl.close()
+    rgl::close3d()
   }
 
-  expect_warning(
-    image_x3p(x3ptestmask, crosscut = 5),
-    "(Use of crosscut is deprecated)|(Crosscut does not map to x3p file correctly)",
-    all = T
-  )
+  # expect_warning(
+  #   image_x3p(x3ptestmask, crosscut = 5),
+  #   "(Use of crosscut is deprecated)|(Crosscut does not map to x3p file correctly)",
+  #   all = T
+  # )
   # Check that a window is open
   expect_gte(rglwindowopen, 1)
   # If open, close it
   if (rglwindowopen) {
-    rgl::rgl.close()
+    rgl::close3d()
   }
+})
+
+test_that("image.x3p works as expected", {
+  image(x3ptest)
+  yaxis <- par()$yaxp
+  expect_equal(yaxis, c(1, 0, 5))
 })

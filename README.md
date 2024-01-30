@@ -1,21 +1,22 @@
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version/x3ptools)](https://CRAN.R-project.org/package=x3ptools)
-[![packageversion](https://img.shields.io/badge/Package%20version-0.0.2-orange.svg?style=flat-square)](https://github.com/heike/x3ptools/commits/master)
+<img src="https://img.shields.io/github/r-package/v/heike/x3ptools?logo=github">
 [![CRAN RStudio mirror
 downloads](https://cranlogs.r-pkg.org/badges/last-month/x3ptools?color=blue)](https://r-pkg.org/pkg/x3ptools)
 [![Lifecycle:
 stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
-[![Last-changedate](https://img.shields.io/badge/last%20change-2021--11--26-yellowgreen.svg)](https://github.com/heike/x3ptools/commits/master)
-[![Coverage
-status](https://codecov.io/gh/heike/x3ptools/branch/master/graph/badge.svg)](https://codecov.io/github/heike/x3ptools?branch=master)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2024--01--29-yellowgreen.svg)](https://github.com/heike/x3ptools/commits/main)
+[![Codecov test
+coverage](https://codecov.io/gh/heike/x3ptools/graph/badge.svg?token=80NyJNOg5b)](https://app.codecov.io/gh/heike/x3ptools)
 [![R-CMD-check](https://github.com/heike/x3ptools/workflows/R-CMD-check/badge.svg)](https://github.com/heike/x3ptools/actions)
 
 # x3ptools <img src="man/figures/x3ptools.png" align="right" width="120"/>
 
-The x3p file format is specified in ISO standard 5436:2000 to describe
-3d surface measurements. This package allows reading, writing and basic
-modifications to the 3D surface measurements.
+The x3p file format is specified in ISO standard 25178-72:2017/AMD
+1:2020 (based on ISO ISO5436 – 2000) describe 3d surface measurements.
+This package allows reading, writing and basic modifications to the 3D
+surface measurements.
 
 # Installation
 
@@ -37,9 +38,9 @@ devtools::install_github("heike/x3ptools", build_vignettes = TRUE)
 The x3p file format is an xml based file format created to describe
 digital surface measurements. x3p has been developed by OpenFMC (Open
 Forensic Metrology Consortium, see <https://www.open-fmc.org/>) and has
-been adopted as ISO ISO5436 – 2000. x3p files are a zip archive of a
-directory consisting of an xml file of meta information and a matrix of
-numeric surface measurements.
+been adopted as 25178-72:2017/AMD 1:2020. x3p files are a zip archive of
+a directory consisting of an xml file of meta information and a matrix
+of numeric surface measurements.
 
 ### x3p objects
 
@@ -49,7 +50,7 @@ info, feature info, general info, and matrix info:
 
 ``` r
 library(x3ptools)
-logo <- read_x3p(system.file("csafe-logo.x3p", package="x3ptools"))
+logo <- x3p_read(system.file("csafe-logo.x3p", package="x3ptools"))
 names(logo)
 ```
 
@@ -92,15 +93,15 @@ for storing the information.
 While these pieces can be changed and adapted manually, it is more
 convenient to save information on the capturing device and the creator
 in a separate template and bind measurements and meta information
-together in the command `addtemplate_x3p`.
+together in the command `x3p_addtemplate`.
 
 ### Reading and writing x3p files
 
-`read_x3p` and `write_x3p` are the two functions allows us to read x3p
+`x3p_read` and `x3p_write` are the two functions allows us to read x3p
 files and write to x3p files.
 
 ``` r
-logo <- read_x3p(system.file("csafe-logo.x3p", package="x3ptools"))
+logo <- x3p_read(system.file("csafe-logo.x3p", package="x3ptools"))
 names(logo)
 ```
 
@@ -111,16 +112,16 @@ names(logo)
 
 ### Visualizing x3p objects
 
-The function `image_x3p` uses `rgl` to render a 3d object in a separate
+The function `x3p_image` uses `rgl` to render a 3d object in a separate
 window. The user can then interact with the 3d surface (zoom and
 rotate):
 
 ``` r
-image_x3p(logo, size=c(741,419), zoom=0.5, useNULL=TRUE)
-rglwidget()
+x3p_image(logo, size=c(741,419), zoom=0.5, useNULL=TRUE)
+rgl::rglwidget()
 ```
 
-![](man/figures/logo-rgl.png)<!-- -->
+<img src="man/figures/logo-rgl.png" width="360" />
 
 In case a file name is specified in the function call the resulting
 surface is saved in a file (the extension determines the actual file
@@ -128,7 +129,7 @@ format of the image).
 
 #### Helper lines
 
-`image_x3p_grid` lays a regularly spaced grid of lines over the surface
+`x3p_image_grid` lays a regularly spaced grid of lines over the surface
 of the scan. Lines are drawn `spaces` apart (50 microns by default in y
 direction and 100 microns in x direction). Every fifth and tenth lines
 are colored differently to ease a visual assessment of distance.
@@ -136,11 +137,11 @@ are colored differently to ease a visual assessment of distance.
 ``` r
 logoplus <- x3p_add_grid(logo, spaces=50e-6, 
                          size = c(3,3,5), color=c("grey50", "black", "darkred"))
-image_x3p(logoplus, size=c(741,419), zoom=0.5, useNULL=TRUE)
-rglwidget()
+x3p_image(logoplus, size=c(741,419), zoom=0.5, useNULL=TRUE)
+rgl::rglwidget()
 ```
 
-![](man/figures/logo-rgl-grid.png)<!-- -->
+<img src="man/figures/logo-rgl-grid.png" width="350" />
 
 ### Casting between data types
 
@@ -190,17 +191,17 @@ logo_df %>% ggplot(aes( x= x, y=y, fill= value)) +
 
 #### Rotation and Transposition
 
-`rotate_x3p` rotates an x3p image in steps of 90 degrees,
-`transpose_x3p` transposes the surface matrix of an image and updates
-the corresponding meta information. The function `y_flip_x3p` is a
+`x3p_rotate` rotates an x3p image counter-clockwise by angle in degrees,
+`x3p_transpose` transposes the surface matrix of an image and updates
+the corresponding meta information. The function `x3p_flip_y` is a
 combination of transpose and rotation, that allows to flip the direction
 of the y axis to move easily from legacy ISO x3p scans to ones
 conforming to the most recent ISO standard.
 
 #### Sampling
 
-`sample_x3p` allows to sub-sample an x3p object to get a lower
-resolution image. In `sample_x3p` we need to set a sampling factor. A
+`x3p_sample` allows to sub-sample an x3p object to get a lower
+resolution image. In `x3p_sample` we need to set a sampling factor. A
 sample factor `mX` of 2 means that we only use every 2nd value of the
 surface matrix, `mX` of 5 means, we only use every fifth value:
 
@@ -211,7 +212,7 @@ dim(logo$surface.matrix)
     ## [1] 741 419
 
 ``` r
-logo_sample <- sample_x3p(logo, m=5)
+logo_sample <- x3p_sample(logo, m=5)
 dim(logo_sample$surface.matrix)
 ```
 
@@ -222,7 +223,7 @@ sampling rate in y direction. We can also use different offsets in x and
 y direction by specifying `offsetX` and/or `offsetY`.
 
 ``` r
-sample2 <- sample_x3p(logo, m=5, offset=1)
+sample2 <- x3p_sample(logo, m=5, offset=1)
 cor(as.vector(logo_sample$surface.matrix[-149,]), as.vector(sample2$surface.matrix))
 ```
 
@@ -230,11 +231,11 @@ cor(as.vector(logo_sample$surface.matrix[-149,]), as.vector(sample2$surface.matr
 
 #### Interpolation
 
-`interpolate_x3p` allows, like `sample_x3p`, to create a new x3p file at
+`x3p_interpolate` allows, like `x3p_sample`, to create a new x3p file at
 a new resolution, as specified in the parameters `resx` and `resy`. The
 new resolution should be lower (i.e. larger values for `resx` and
 `resy`) than the resolution specified as `IncrementX` and `IncrementY`
-in the header info of the x3p file. `interpolate_x3p` can also be used
+in the header info of the x3p file. `x3p_interpolate` can also be used
 to interpolate missing values (set parameter `maxgap` according to
 specifications in `zoo::na.approx`).
 
@@ -294,20 +295,20 @@ barrel of the handgun when fired), areas in dark blue show groove
 engraved areas, the light blue area shows break off at the bottom of the
 bullet, and the pink area marks an area without striae:
 
-![](man/figures/markup.png)<!-- -->
+<img src="man/figures/markup.png" width="750" />
 
 Any image can serve as a mask, the command `x3p_add_mask` allows to add
 a raster image as a mask for a x3p object:
 
 ``` r
-logo <- read_x3p(system.file("csafe-logo.x3p", package="x3ptools"))
+logo <- x3p_read(system.file("csafe-logo.x3p", package="x3ptools"))
 color_logo <- png::readPNG(system.file("csafe-color.png", package="x3ptools"))
 logoplus <- x3p_add_mask(logo, mask = as.raster(color_logo))
 
-image_x3p(logoplus, size=c(741, 419), zoom=0.5, multiply = 30)
+x3p_image(logoplus, size=c(741, 419), zoom=0.5, multiply = 30)
 ```
 
-![](man/figures/logo-color.png)<!-- -->
+<img src="man/figures/logo-color.png" width="655" />
 
 Some masks are more informative than others, but the only requirement
 for images is that they are of the right size.
@@ -324,9 +325,10 @@ Additionally, vertical and horizontal lines can be added in the masks
 using the commands `x3p_add_vline` and `x3p_add_hline`:
 
 ``` r
-logo <- read_x3p(system.file("csafe-logo.x3p", package="x3ptools"))
+logo <- x3p_read(system.file("csafe-logo.x3p", package="x3ptools"))
 logoplus <- x3p_add_hline(logo, yintercept=c(13e-5,19.5e-5), color="cyan")
-#image_x3p(logoplus, size=c(741, 419)/2, zoom=0.5, multiply = 30, file="man/figures/logo-lines.png")
+
+x3p_image(logoplus, size=c(741, 419)/2, zoom=0.5, multiply = 30, file="man/figures/logo-lines.png")
 ```
 
-![](man/figures/logo-lines.png)<!-- -->
+<img src="man/figures/logo-lines.png" width="370" />
